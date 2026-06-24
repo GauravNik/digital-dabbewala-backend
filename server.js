@@ -1,19 +1,23 @@
-const express = require("express")
-const cors = require("cors")
+require("dotenv").config();
 
-const authRoutes = require("./routes/auth")
-const messRoutes = require("./routes/mess")
+const mysql = require("mysql2");
 
-const app = express()
+const db = mysql.createConnection({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  ssl: {
+    minVersion: "TLSv1.2",
+    rejectUnauthorized: true
+  }
+});
 
-app.use(cors())
-app.use(express.json())
-
-app.use("/api/auth", authRoutes)
-app.use("/api/mess", messRoutes)
-
-app.use("/uploads", express.static("uploads"))
-
-app.listen(3000, () => {
-  console.log("Server running on port 3000")
-})
+db.connect((err) => {
+  if (err) {
+    console.log(err);
+  } else {
+    console.log("TiDB Connected");
+  }
+});
