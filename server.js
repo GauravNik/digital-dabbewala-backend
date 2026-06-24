@@ -1,23 +1,39 @@
 require("dotenv").config();
 
-const mysql = require("mysql2");
+const express = require("express");
+const cors = require("cors");
+const bodyParser = require("body-parser");
+const path = require("path");
 
-const db = mysql.createConnection({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  ssl: {
-    minVersion: "TLSv1.2",
-    rejectUnauthorized: true
-  }
+const app = express();
+
+// Import DB (this will connect to TiDB)
+require("./db");
+
+// Routes
+const authRoutes = require("./routes/auth");
+const messRoutes = require("./routes/mess");
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// Serve uploaded images
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+
+// API Routes
+app.use("/api/auth", authRoutes);
+app.use("/api/mess", messRoutes);
+
+// Health Check
+app.get("/", (req, res) => {
+  res.send("Digital Dabbewala Backend Running");
 });
 
-db.connect((err) => {
-  if (err) {
-    console.log(err);
-  } else {
-    console.log("TiDB Connected");
-  }
+// Render Port
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
